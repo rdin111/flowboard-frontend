@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import type {AppDispatch, RootState} from '../app/store';
+import {type AppDispatch, type RootState, store} from '../app/store';
 import {
     fetchBoard,
     updateCardOrder,

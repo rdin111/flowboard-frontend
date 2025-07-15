@@ -190,8 +190,8 @@ const boardSlice = createSlice({
                     if (list) { list.cards = list.cards.filter(c => c._id !== action.payload.cardId); }
                 }
             })
-            .addCase(moveCard.rejected, (state, action) => { console.error("Failed to move card:", action.payload); })
-            .addCase(reorderLists.rejected, (state, action) => { console.error("Failed to reorder lists:", action.payload); });
+            .addCase(moveCard.rejected, (_state, action) => { console.error("Failed to move card:", action.payload); })
+            .addCase(reorderLists.rejected, (_state, action) => { console.error("Failed to reorder lists:", action.payload); });
     },
 });
 
