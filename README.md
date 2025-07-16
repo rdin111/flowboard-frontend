@@ -15,11 +15,11 @@ Welcome to the frontend for Flowboard, a modern, full-stack Kanban-style task ma
 
 ## Tech Stack
 
-- **Framework:** React 18
+- **Framework:** React 19
 - **Language:** TypeScript
 - **Build Tool:** Vite
 - **State Management:** Redux Toolkit
-- **Routing:** React Router v6
+- **Routing:** React Router 
 - **Styling:** Tailwind CSS & DaisyUI
 - **Drag & Drop:** Dnd Kit
 - **Real-Time:** Socket.io Client
