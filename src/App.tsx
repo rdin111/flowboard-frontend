@@ -3,6 +3,7 @@ import './App.css'
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
                     <Outlet />
                 </Suspense>
             </main>
+            <Footer />
         </div>
     );
 }
