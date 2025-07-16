@@ -15,10 +15,14 @@ import Card from '../components/Card';
 import { DndContext, type DragEndEvent, type DragStartEvent, DragOverlay, closestCorners } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, X } from 'lucide-react';
+import { useSocket } from '../hooks/useSocket'; // Import the socket hook
 
 const BoardPage = () => {
     const { boardId } = useParams<{ boardId: string }>();
     const dispatch = useDispatch<AppDispatch>();
+
+    // Call the hook to connect to the socket and listen for real-time updates
+    useSocket(boardId);
 
     const board = useSelector((state: RootState) => state.board.data);
     const boardStatus = useSelector((state: RootState) => state.board.status);
