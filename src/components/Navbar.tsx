@@ -10,7 +10,7 @@ function Navbar() {
             {/* App Title */}
             <div className="navbar-start">
                 <Link to="/" className="btn btn-ghost text-xl font-bold">
-                    flowboard
+                    FlowBoard
                 </Link>
             </div>
 
