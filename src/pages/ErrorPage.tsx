@@ -12,7 +12,7 @@ export default function ErrorPage() {
     } else if (error instanceof Error) {
         errorMessage = error.message;
     } else {
-        errorMessage = "An unknown error occurred";
+        errorMessage = "An unknown error occurred.";
     }
 
     return (
