@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import type {AppDispatch} from '../app/store';
+import { type AppDispatch } from '../app/store';
 import { addNewCard, updateListTitle, deleteList } from '../features/board/boardSlice';
 import Card from './Card';
 import { X, Plus, Trash2 } from 'lucide-react';
@@ -10,6 +10,7 @@ import { CSS } from '@dnd-kit/utilities';
 type CardData = {
     _id: string;
     title: string;
+    subtasks?: string;
 };
 
 type ListProps = {
@@ -110,7 +111,13 @@ const List = ({ listId, title, cards }: ListProps) => {
             <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col gap-3 overflow-y-auto pr-1">
                     {cards.map(card => (
-                        <Card key={card._id} id={card._id} title={card.title} listId={listId} />
+                        <Card
+                            key={card._id}
+                            id={card._id}
+                            title={card.title}
+                            listId={listId}
+                            subtasks={card.subtasks}
+                        />
                     ))}
                 </div>
             </SortableContext>
@@ -118,13 +125,13 @@ const List = ({ listId, title, cards }: ListProps) => {
             <div className="mt-4">
                 {isAddingCard ? (
                     <div className="card bg-base-100 p-2">
-            <textarea
-                className="textarea textarea-bordered w-full"
-                placeholder="Enter a title for this card..."
-                value={newCardTitle}
-                onChange={(e) => setNewCardTitle(e.target.value)}
-                autoFocus
-            ></textarea>
+                        <textarea
+                            className="textarea textarea-bordered w-full"
+                            placeholder="Enter a title for this card..."
+                            value={newCardTitle}
+                            onChange={(e) => setNewCardTitle(e.target.value)}
+                            autoFocus
+                        ></textarea>
                         <div className="card-actions mt-2">
                             <button onClick={handleAddCardClick} className="btn btn-primary btn-sm">Add card</button>
                             <button onClick={() => setIsAddingCard(false)} className="btn btn-ghost btn-sm">

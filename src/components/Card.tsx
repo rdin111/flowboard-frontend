@@ -1,17 +1,18 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Sparkles } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import type {AppDispatch} from '../app/store';
-import { deleteCard } from '../features/board/boardSlice';
+import { type AppDispatch } from '../app/store';
+import { deleteCard, generateSubtasks } from '../features/board/boardSlice';
 
 type CardProps = {
     id: string;
     title: string;
     listId: string;
+    subtasks?: string;
 };
 
-const Card = ({ id, title, listId }: CardProps) => {
+const Card = ({ id, title, listId, subtasks }: CardProps) => {
     const dispatch = useDispatch<AppDispatch>();
     const {
         attributes,
@@ -29,34 +30,51 @@ const Card = ({ id, title, listId }: CardProps) => {
     };
 
     const handleDelete = (e: React.MouseEvent) => {
-        // This stops the click from interfering with the drag event
         e.stopPropagation();
         if (window.confirm(`Are you sure you want to delete this card?`)) {
             dispatch(deleteCard({ listId, cardId: id }));
         }
     }
 
+    const handleAiClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        dispatch(generateSubtasks({ cardId: id, title }));
+    }
+
     return (
-        // The ref is on the main outer element
         <div
             ref={setNodeRef}
             style={style}
             className="card bg-base-100 shadow-md group"
         >
-            {/* The main body of the card */}
-            <div className="card-body p-3 flex-row justify-between items-center">
-                {/* This inner div is now the dedicated "grab handle" */}
-                    <div {...attributes} {...listeners} className="flex-grow cursor-grab touch-none">
+            <div className="card-body p-3 cursor-grab touch-none">
+                <div className="flex justify-between items-start">
+                    <div {...attributes} {...listeners} className="flex-grow">
                         <p>{title}</p>
                     </div>
+                    <div className="flex-shrink-0 flex items-center">
+                        <button
+                            onClick={handleAiClick}
+                            className="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-100"
+                            title="Generate sub-tasks with AI"
+                        >
+                            <Sparkles className="h-4 w-4 text-info" />
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-100"
+                            title="Delete card"
+                        >
+                            <Trash2 className="h-4 w-4 text-error" />
+                        </button>
+                    </div>
+                </div>
 
-                    {/* The button is  a sibling to the grab handle, not a child */}
-                    <button
-                        onClick={handleDelete}
-                        className="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-100"
-                    >
-                        <Trash2 className="h-4 w-4 text-error" />
-                    </button>
+                {subtasks && (
+                    <div className="text-sm mt-2 pt-2 border-t border-base-200 whitespace-pre-line">
+                        {subtasks}
+                    </div>
+                )}
             </div>
         </div>
     );

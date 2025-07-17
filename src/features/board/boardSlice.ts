@@ -7,6 +7,7 @@ interface Card {
     _id: string;
     title: string;
     list: string;
+    subtasks?: string;
 }
 
 interface List {
@@ -128,6 +129,18 @@ export const reorderLists = createAsyncThunk(
     }
 );
 
+export const generateSubtasks = createAsyncThunk(
+    'board/generateSubtasks',
+    async ({ cardId, title }: { cardId: string; title: string }, { rejectWithValue }) => {
+        try {
+            const response = await apiClient.post('/ai/generate-subtasks', { title });
+            return { cardId, subtasks: response.data.subtasks };
+        } catch (err: any) {
+            return rejectWithValue(err.response.data);
+        }
+    }
+);
+
 const boardSlice = createSlice({
     name: 'board',
     initialState,
@@ -188,6 +201,18 @@ const boardSlice = createSlice({
                 if (state.data) {
                     const list = state.data.lists.find(l => l._id === action.payload.listId);
                     if (list) { list.cards = list.cards.filter(c => c._id !== action.payload.cardId); }
+                }
+            })
+            .addCase(generateSubtasks.fulfilled, (state, action) => {
+                const { cardId, subtasks } = action.payload;
+                if (state.data) {
+                    for (const list of state.data.lists) {
+                        const card = list.cards.find(c => c._id === cardId);
+                        if (card) {
+                            card.subtasks = subtasks;
+                            break;
+                        }
+                    }
                 }
             })
             .addCase(moveCard.rejected, (_state, action) => { console.error("Failed to move card:", action.payload); })
