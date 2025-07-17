@@ -50,7 +50,7 @@ const Card = ({ id, title, listId }: CardProps) => {
                         <p>{title}</p>
                     </div>
 
-                    {/* The button is now a sibling to the grab handle, not a child */}
+                    {/* The button is  a sibling to the grab handle, not a child */}
                     <button
                         onClick={handleDelete}
                         className="btn btn-ghost btn-square btn-xs opacity-0 group-hover:opacity-100"
