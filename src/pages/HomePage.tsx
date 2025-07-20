@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import type {AppDispatch, RootState} from '../app/store';
 import { fetchAllBoards, createNewBoard, deleteBoard } from '../features/boardList/boardListSlice';
 import { Plus, Trash2, LayoutDashboard } from 'lucide-react';
+import ColdStartSpinner from '../components/ColdStartSpinner';
 
 const HomePage = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -14,11 +15,31 @@ const HomePage = () => {
     const createModalRef = useRef<HTMLDialogElement>(null);
     const deleteModalRef = useRef<HTMLDialogElement>(null);
 
+    // State to manage showing the detailed "cold start" message
+    const [showColdStartMessage, setShowColdStartMessage] = useState(false);
+
     useEffect(() => {
         if (status === 'idle') {
             dispatch(fetchAllBoards());
         }
     }, [status, dispatch]);
+
+    // This effect shows the cold start message if loading takes too long
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (status === 'loading') {
+            // Set a timer to show the message after 3 seconds
+            timer = setTimeout(() => {
+                setShowColdStartMessage(true);
+            }, 3000);
+        } else {
+            // If loading finishes, clear the timer and hide the message
+            setShowColdStartMessage(false);
+        }
+
+        // Cleanup function to clear the timer if the component unmounts
+        return () => clearTimeout(timer);
+    }, [status]);
 
     const handleCreateBoard = () => {
         if (newBoardTitle.trim()) {
@@ -42,22 +63,20 @@ const HomePage = () => {
         }
     };
 
-    // This function conditionally renders the UI based on the API status.
     const renderContent = () => {
         if (status === 'loading' || status === 'idle') {
-            return (
+            // Show the detailed message if the flag is set, otherwise show a simple spinner
+            return showColdStartMessage ? <ColdStartSpinner /> : (
                 <div className="flex justify-center items-center p-10">
                     <span className="loading loading-spinner loading-lg"></span>
                 </div>
             );
         }
 
-        // If the API call fails, show an error message.
         if (status === 'failed') {
             return <p className="text-center text-error">Error: {error}</p>;
         }
 
-        // If the API call succeeds and there are no boards, show the welcome hero.
         if (status === 'succeeded' && boards.length === 0) {
             return (
                 <div className="hero mt-16">
@@ -75,12 +94,11 @@ const HomePage = () => {
             );
         }
 
-        // If the API call succeeds and there ARE boards, show the grid.
         if (status === 'succeeded' && boards.length > 0) {
             return (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {boards
-                        .filter(board => board.title && board._id) // avoid rendering invalid entries
+                        .filter(board => board.title && board._id)
                         .map(board => (
                             <Link to={`/board/${board._id}`} key={board._id} className="card bg-base-200 hover:bg-base-300 transition-all group">
                                 <div className="card-body">
@@ -97,7 +115,6 @@ const HomePage = () => {
             );
         }
 
-        // Fallback case (should not be reached)
         return null;
     }
 
@@ -114,7 +131,6 @@ const HomePage = () => {
 
             {renderContent()}
 
-            {/* --- Modals --- */}
             <dialog ref={createModalRef} className="modal">
                 <div className="modal-box">
                     <h3 className="font-bold text-lg">Create a new board</h3>
