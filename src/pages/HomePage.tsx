@@ -26,7 +26,7 @@ const HomePage = () => {
 
     // This effect shows the cold start message if loading takes too long
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: number;
         if (status === 'loading') {
             // Set a timer to show the message after 3 seconds
             timer = setTimeout(() => {
