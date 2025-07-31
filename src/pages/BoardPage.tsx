@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {type AppDispatch, type RootState, store} from '../app/store';
@@ -8,20 +8,20 @@ import {
     moveCard,
     addNewList,
     reorderLists,
-    updateListOrder
+    updateListOrder,
+    generateListWithAI,
 } from '../features/board/boardSlice';
 import List from '../components/List';
 import Card from '../components/Card';
 import { DndContext, type DragEndEvent, type DragStartEvent, DragOverlay, closestCorners } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import { Plus, X } from 'lucide-react';
-import { useSocket } from '../hooks/useSocket'; // Import the socket hook
+import { Plus, X, Sparkles } from 'lucide-react';
+import { useSocket } from '../hooks/useSocket';
 
 const BoardPage = () => {
     const { boardId } = useParams<{ boardId: string }>();
     const dispatch = useDispatch<AppDispatch>();
 
-    // Call the hook to connect to the socket and listen for real-time updates
     useSocket(boardId);
 
     const board = useSelector((state: RootState) => state.board.data);
@@ -31,6 +31,8 @@ const BoardPage = () => {
     const [activeDragItem, setActiveDragItem] = useState<any>(null);
     const [isAddingList, setIsAddingList] = useState(false);
     const [newListTitle, setNewListTitle] = useState("");
+    const [aiPrompt, setAiPrompt] = useState("");
+    const aiModalRef = useRef<HTMLDialogElement>(null);
 
     useEffect(() => {
         if (boardId) {
@@ -104,6 +106,14 @@ const BoardPage = () => {
         }
     };
 
+    const handleGenerateAiList = () => {
+        if (aiPrompt.trim()) {
+            dispatch(generateListWithAI(aiPrompt));
+            setAiPrompt("");
+            aiModalRef.current?.close();
+        }
+    };
+
     let content;
     if (boardStatus === 'loading') {
         content = <div className="p-4 text-center"><span className="loading loading-spinner loading-lg"></span></div>;
@@ -162,9 +172,38 @@ const BoardPage = () => {
     }
 
     return (
-        <div className="overflow-x-auto h-[calc(100vh-4rem)]">
-            <h1 className="text-3xl font-bold p-4 pb-0">{board?.title || 'Board'}</h1>
-            {content}
+        <div className="relative min-h-[calc(100vh-4rem)]">
+            <div className="overflow-x-auto h-full">
+                <h1 className="text-3xl font-bold p-4 pb-0">{board?.title || 'Board'}</h1>
+                {content}
+            </div>
+
+            <div className="absolute bottom-6 right-6">
+                <button className="btn btn-primary btn-circle shadow-lg" onClick={() => aiModalRef.current?.showModal()} title="Generate list with AI">
+                    <Sparkles className="h-6 w-6" />
+                </button>
+            </div>
+
+            <dialog ref={aiModalRef} className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Generate a New List with AI</h3>
+                    <p className="py-2">Describe a goal or topic, and AI will create a list with tasks for you.</p>
+                    <div className="py-4">
+                        <textarea
+                            className="textarea textarea-bordered w-full"
+                            placeholder="e.g., 'Plan a new marketing campaign' or 'Organize my weekly chores'"
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            rows={3}
+                        ></textarea>
+                    </div>
+                    <div className="modal-action">
+                        <form method="dialog"><button className="btn">Cancel</button></form>
+                        <button className="btn btn-primary" onClick={handleGenerateAiList}>Generate</button>
+                    </div>
+                </div>
+                <form method="dialog" className="modal-backdrop"><button>close</button></form>
+            </dialog>
         </div>
     );
 };

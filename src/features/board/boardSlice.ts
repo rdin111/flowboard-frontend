@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import apiClient from '../../api/client';
 import { arrayMove } from '@dnd-kit/sortable';
+import { type RootState } from '../../app/store';
 
 // --- INTERFACES ---
 interface Card {
@@ -129,17 +130,38 @@ export const reorderLists = createAsyncThunk(
     }
 );
 
-export const generateSubtasks = createAsyncThunk(
-    'board/generateSubtasks',
-    async ({ cardId, title }: { cardId: string; title: string }, { rejectWithValue }) => {
+export const generateListWithAI = createAsyncThunk(
+    'board/generateListWithAI',
+    async (prompt: string, { dispatch, getState, rejectWithValue }) => {
         try {
-            const response = await apiClient.post('/ai/generate-subtasks', { title });
-            return { cardId, subtasks: response.data.subtasks };
+            const { data: board } = (getState() as RootState).board;
+            if (!board) {
+                return rejectWithValue('No board selected.');
+            }
+
+            const response = await apiClient.post('/ai/generate-list', { prompt });
+            const { listTitle, cardTitles } = response.data;
+
+            const newListAction = await dispatch(
+                addNewList({ boardId: board._id, title: listTitle })
+            );
+
+            if (addNewList.rejected.match(newListAction)) {
+                return rejectWithValue('Failed to create new list.');
+            }
+            const newList = newListAction.payload as List;
+
+            for (const cardTitle of cardTitles) {
+                await dispatch(addNewCard({ listId: newList._id, title: cardTitle }));
+            }
+
+            return "Successfully generated list and cards!";
         } catch (err: any) {
-            return rejectWithValue(err.response.data);
+            return rejectWithValue(err.response?.data?.message || 'Failed to generate content with AI.');
         }
     }
 );
+
 
 const boardSlice = createSlice({
     name: 'board',
@@ -203,17 +225,12 @@ const boardSlice = createSlice({
                     if (list) { list.cards = list.cards.filter(c => c._id !== action.payload.cardId); }
                 }
             })
-            .addCase(generateSubtasks.fulfilled, (state, action) => {
-                const { cardId, subtasks } = action.payload;
-                if (state.data) {
-                    for (const list of state.data.lists) {
-                        const card = list.cards.find(c => c._id === cardId);
-                        if (card) {
-                            card.subtasks = subtasks;
-                            break;
-                        }
-                    }
-                }
+            .addCase(generateListWithAI.pending, (_state) => { // Renamed state to _state
+                console.log("AI generation in progress...");
+            })
+            .addCase(generateListWithAI.rejected, (state, action) => {
+                console.error("AI generation failed:", action.payload);
+                state.error = action.payload as string;
             })
             .addCase(moveCard.rejected, (_state, action) => { console.error("Failed to move card:", action.payload); })
             .addCase(reorderLists.rejected, (_state, action) => { console.error("Failed to reorder lists:", action.payload); });

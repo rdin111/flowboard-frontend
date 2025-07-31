@@ -7,10 +7,10 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// The 'subtasks' property is removed from this type
 type CardData = {
     _id: string;
     title: string;
-    subtasks?: string;
 };
 
 type ListProps = {
@@ -116,7 +116,6 @@ const List = ({ listId, title, cards }: ListProps) => {
                             id={card._id}
                             title={card.title}
                             listId={listId}
-                            subtasks={card.subtasks}
                         />
                     ))}
                 </div>
