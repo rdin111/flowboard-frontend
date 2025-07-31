@@ -191,7 +191,7 @@ const BoardPage = () => {
                             className="textarea textarea-bordered w-full"
                             placeholder="e.g., 'Plan a new marketing campaign' or 'Organize my weekly chores'"
                             value={aiPrompt}
-                            onChange={(e) => setAiPrompt(e.g.target.value)}
+                            onChange={(e) => setAiPrompt(e.target.value)}
                             rows={3}
                         ></textarea>
                     </div>
