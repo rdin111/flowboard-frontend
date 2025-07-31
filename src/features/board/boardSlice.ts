@@ -232,13 +232,11 @@ const boardSlice = createSlice({
             })
             .addCase(generateListWithAI.fulfilled, (state) => {
                 state.aiStatus = 'succeeded';
-//...
             })
             .addCase(generateListWithAI.rejected, (state, action) => {
                 state.aiStatus = 'failed';
                 state.error = action.payload as string;
             })
-            // Corrected lines:
             .addCase(moveCard.rejected, (_state, action) => { console.error("Failed to move card:", action.payload); })
             .addCase(reorderLists.rejected, (_state, action) => { console.error("Failed to reorder lists:", action.payload); });
     },
