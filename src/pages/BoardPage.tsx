@@ -9,7 +9,7 @@ import {
     addNewList,
     reorderLists,
     updateListOrder,
-    generateListWithAI,
+    generateListWithAI
 } from '../features/board/boardSlice';
 import List from '../components/List';
 import Card from '../components/Card';
@@ -27,6 +27,7 @@ const BoardPage = () => {
     const board = useSelector((state: RootState) => state.board.data);
     const boardStatus = useSelector((state: RootState) => state.board.status);
     const error = useSelector((state: RootState) => state.board.error);
+    const aiStatus = useSelector((state: RootState) => state.board.aiStatus);
 
     const [activeDragItem, setActiveDragItem] = useState<any>(null);
     const [isAddingList, setIsAddingList] = useState(false);
@@ -54,8 +55,8 @@ const BoardPage = () => {
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
+        setActiveDragItem(null);
         if (!over || !board || active.id === over.id) {
-            setActiveDragItem(null);
             return;
         }
 
@@ -64,7 +65,6 @@ const BoardPage = () => {
         if (isListDrag) {
             const activeId = active.id.toString();
             const overId = over.id.toString();
-
             dispatch(updateListOrder({ activeId, overId }));
 
             const updatedLists = store.getState().board.data?.lists;
@@ -89,13 +89,11 @@ const BoardPage = () => {
                 destinationIndex = overCardIndex !== -1 ? overCardIndex : destinationList.cards.length;
             }
 
-            if(!destinationListId) return;
+            if(!destinationListId || (sourceListId === destinationListId && store.getState().board.data?.lists.find(l => l._id === sourceListId)?.cards.findIndex(c => c._id === activeId) === destinationIndex)) return;
 
             dispatch(updateCardOrder({ cardId: activeId, sourceListId, destinationListId, destinationIndex }));
             dispatch(moveCard({ cardId: activeId, sourceListId, destinationListId, destinationIndex }));
         }
-
-        setActiveDragItem(null);
     };
 
     const handleAddList = () => {
@@ -115,7 +113,7 @@ const BoardPage = () => {
     };
 
     let content;
-    if (boardStatus === 'loading') {
+    if (boardStatus === 'loading' || boardStatus === 'idle') {
         content = <div className="p-4 text-center"><span className="loading loading-spinner loading-lg"></span></div>;
     } else if (boardStatus === 'succeeded' && board) {
         const listIds = board.lists.map(list => list._id);
@@ -198,8 +196,11 @@ const BoardPage = () => {
                         ></textarea>
                     </div>
                     <div className="modal-action">
-                        <form method="dialog"><button className="btn">Cancel</button></form>
-                        <button className="btn btn-primary" onClick={handleGenerateAiList}>Generate</button>
+                        <form method="dialog"><button className="btn" disabled={aiStatus === 'loading'}>Cancel</button></form>
+                        <button className="btn btn-primary" onClick={handleGenerateAiList} disabled={aiStatus === 'loading'}>
+                            {aiStatus === 'loading' && <span className="loading loading-spinner"></span>}
+                            Generate
+                        </button>
                     </div>
                 </div>
                 <form method="dialog" className="modal-backdrop"><button>close</button></form>

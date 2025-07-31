@@ -27,12 +27,14 @@ interface BoardState {
     data: Board | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
+    aiStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
 }
 
 const initialState: BoardState = {
     data: null,
     status: 'idle',
     error: null,
+    aiStatus: 'idle',
 };
 
 // --- ASYNC THUNKS ---
@@ -225,13 +227,18 @@ const boardSlice = createSlice({
                     if (list) { list.cards = list.cards.filter(c => c._id !== action.payload.cardId); }
                 }
             })
-            .addCase(generateListWithAI.pending, (_state) => { // Renamed state to _state
-                console.log("AI generation in progress...");
+            .addCase(generateListWithAI.pending, (state) => {
+                state.aiStatus = 'loading';
+            })
+            .addCase(generateListWithAI.fulfilled, (state) => {
+                state.aiStatus = 'succeeded';
+//...
             })
             .addCase(generateListWithAI.rejected, (state, action) => {
-                console.error("AI generation failed:", action.payload);
+                state.aiStatus = 'failed';
                 state.error = action.payload as string;
             })
+            // Corrected lines:
             .addCase(moveCard.rejected, (_state, action) => { console.error("Failed to move card:", action.payload); })
             .addCase(reorderLists.rejected, (_state, action) => { console.error("Failed to reorder lists:", action.payload); });
     },
